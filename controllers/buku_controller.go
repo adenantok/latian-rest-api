@@ -4,6 +4,7 @@ import (
 	"latian-rest-api/config"
 	"latian-rest-api/models"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,6 +13,7 @@ import (
 type BukuService interface {
 	GetBuku() ([]models.Buku, error)
 	AddBuku(buku models.Buku) error
+	GetBukuById(id int) (*models.Buku, error)
 }
 
 // bukuService is a struct implementing BukuService
@@ -91,4 +93,31 @@ func (bc *BukuController) AddBukuHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Data buku berhasil ditambahkan"})
+}
+
+func (bs *bukuService) GetBukuById(id int) (*models.Buku, error) {
+	var buku models.Buku
+	if err := config.DB.First(&buku, id).Error; err != nil {
+		return nil, err
+	}
+	return &buku, nil
+}
+
+// GetBukuHandler handles the GET request for books by id
+func (bc *BukuController) GetBukuByIdHandler(c *gin.Context) {
+	id := c.Param("id")
+
+	// Konversi ID dari string ke int
+	bukuId, err := strconv.Atoi(id) // Ubah string menjadi integer.
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID tidak valid"})
+		return
+	}
+	buku, err := bc.service.GetBukuById(bukuId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "buku tidak ditemukan"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": buku})
 }

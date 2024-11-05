@@ -19,6 +19,7 @@ func main() {
 	bukuController := controllers.NewBukuController(controllers.NewBukuService()) // Create instance of BukuController
 
 	router.GET("/buku", bukuController.GetBukuHandler) // Use handler for GET request
+	router.GET("/buku/:id", bukuController.GetBukuByIdHandler)
 	router.POST("/buku", bukuController.AddBukuHandler)
 
 	log.Fatal(router.Run(":3000")) // Start the server
