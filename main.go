@@ -21,6 +21,7 @@ func main() {
 	router.GET("/buku", bukuController.GetBukuHandler) // Use handler for GET request
 	router.GET("/buku/:id", bukuController.GetBukuByIdHandler)
 	router.POST("/buku", bukuController.AddBukuHandler)
+	router.PUT("/buku", bukuController.UpdateBuku)
 
 	log.Fatal(router.Run(":3000")) // Start the server
 }
