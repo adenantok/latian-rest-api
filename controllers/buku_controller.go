@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"errors"
 	"latian-rest-api/config"
 	"latian-rest-api/models"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // BukuService is an interface for managing books
@@ -15,6 +17,7 @@ type BukuService interface {
 	AddBuku(buku models.Buku) error
 	GetBukuById(id int) (*models.Buku, error)
 	UpdateBuku(buku models.Buku) error
+	DeleteBuku(id int) error
 }
 
 // bukuService is a struct implementing BukuService
@@ -161,6 +164,39 @@ func (bc *BukuController) UpdateBuku(c *gin.Context) {
 
 func (bs *bukuService) UpdateBuku(buku models.Buku) error {
 	if err := config.DB.Save(&buku).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (bc *BukuController) DeleteBukuHandler(c *gin.Context) {
+	id := c.Param("id")
+	// Konversi ID dari string ke int
+	bukuId, err := strconv.Atoi(id) // Ubah string menjadi integer.
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID tidak valid"})
+		return
+	}
+	err = bc.service.DeleteBuku(bukuId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "buku dengan id " + id + " berhasil dihapus"})
+
+}
+
+func (bs *bukuService) DeleteBuku(id int) error {
+	var buku models.Buku
+
+	if err := config.DB.First(&buku, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("buku tidak ditemukan")
+		}
+		return err
+	}
+	if err := config.DB.Delete(&buku, id).Error; err != nil {
 		return err
 	}
 	return nil
